@@ -41,6 +41,18 @@
         <artifactId>gt-epsg-hsql</artifactId>
         <version>${geotools.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-data</artifactId>
+      <version>13.2</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-cql</artifactId>
+      <version>13.2</version>
+      <type>jar</type>
+    </dependency>
   </dependencies>
     <repositories>
         <repository>

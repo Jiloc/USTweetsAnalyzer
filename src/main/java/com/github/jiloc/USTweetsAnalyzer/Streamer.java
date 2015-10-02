@@ -10,6 +10,9 @@
 package com.github.jiloc.USTweetsAnalyzer;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import twitter4j.FilterQuery;
 import twitter4j.StallWarning;
@@ -33,24 +36,55 @@ public class Streamer {
 		{-163.730232375,17.3129861307}, {-150.918203125,24.4630715246}, // Hawaii
 		{-179.902107375, 49.5693693495}, {-119.453359375, 71.5805021834} // Alaska
 	};
+
+   
 	
-	public Streamer(){
+        private Store store;
+        
+	public Streamer() throws IOException{
 		this.twitterStream = new TwitterStreamFactory().getInstance();
 		this.twitterStream.addListener(listener);
 		this.geoLocalizator = new Geolocalizator(
 			"src/main/resources/tl_2014_us_state/tl_2014_us_state.shp");
+                store = new Store();
 	}
 	
 	private StatusListener listener = new StatusListener(){
-		public void onStatus(Status status) {
+		public void onStatus(Status status)  {
+                    
+                        //ArrayList<String> state = geoLocalizator.getStateFromCoordinates(status.getGeoLocation().getLongitude(), 
+                                                                               //status.getGeoLocation().getLatitude());
+                         //String loc = status.getUser().getLocation();
+                      
 			if(status.getGeoLocation() != null){
+                              ArrayList<String> state = geoLocalizator.getStateFromCoordinates(
+                                    status.getGeoLocation().getLongitude(),
+                                    status.getGeoLocation().getLatitude());
+                                if(state != null && state.get(0) != null && status.getUser().getLocation()!= null){
 				System.out.println(
-						"getUserLocation: " + status.getUser().getLocation() +
+						"getUserLocation: " + status.getUser().getLocation() + // LOC
 						" getGeoLocation: " + status.getGeoLocation() + 
 						" geoLocalizator: " + geoLocalizator.getStateFromCoordinates(
 							status.getGeoLocation().getLongitude(), 
 							status.getGeoLocation().getLatitude()));
+                                
+                          
+                                
+                                 
+                             
+                                    
+                                    
+                                    try {
+                                        store.Writing_Index(state.get(0), status.getUser().getLocation());
+                                    } catch (IOException ex) {
+                                        Logger.getLogger(Streamer.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                    
+                              }
+                                
 			}
+                        
+                      
 		}
 		
 		public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {}
@@ -75,14 +109,18 @@ public class Streamer {
 		fq.locations(locations); //we need also the next line
 		// fq.track(query); //the query to track from the stream 
 		this.twitterStream.filter(fq);
+                 
 	}
-	
+        
+	public Store getStore() {
+           return store;
+        }
+        
 	public static void main(String[] args) throws TwitterException, IOException{
 		
 		Streamer stream = new Streamer();
 		stream.startListening();
-	
-		
+               
 		//Example Rest--------
 		/*Twitter twitter = new TwitterFactory(cfg.build()).getInstance(); 
                 

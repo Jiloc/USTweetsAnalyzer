@@ -95,3 +95,6 @@ twitter4j.properties
 
 # mac Files
 .DS_store
+
+#Lucene Index
+tweet_index

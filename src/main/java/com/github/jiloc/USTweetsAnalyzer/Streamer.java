@@ -68,11 +68,11 @@ public class Streamer {
 	public void startListening(){
 		// sample() method internally creates a thread which manipulates TwitterStream 
 		// and calls these adequate listener methods continuously.
-		this.twitterStream.sample(); //questo per il 1 % per the public stream 
+		this.twitterStream.sample(); //1 % of the public stream 
 		
 		FilterQuery fq = new FilterQuery();// the filter object
-		// fq.language(language);  // we use this method to select the language of tracked stream 
-		fq.locations(locations); //we need also the next line
+		fq.locations(locations);
+		// fq.language(language);		
 		// fq.track(query); //the query to track from the stream 
 		this.twitterStream.filter(fq);
 	}
@@ -81,24 +81,6 @@ public class Streamer {
 		
 		Streamer stream = new Streamer();
 		stream.startListening();
-	
-		
-		//Example Rest--------
-		/*Twitter twitter = new TwitterFactory(cfg.build()).getInstance(); 
-                
-		long [] ids =twitter.getFriendsIDs(userId, -1).getIDs();
-		List<User> friends = twitter.lookupUsers(ids);
-		//System.out.println(twi.getName());
-                System.out.println("Showing friend's of the following user");
-		System.out.println(userId+": "+twitter.showUser(userId).getScreenName());
-                 System.out.println("The list of friends:");
-		for(User e : friends){
-			System.out.println(e.getId()+": "+e.getScreenName());
-		}*/
-	//	for (int i = 0 ; i < ids.length; i++){
-			//System.out.println(ids[i]);
-		//	friends.size()
-	//	}
 		
 	}
 }

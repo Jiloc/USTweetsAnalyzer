@@ -32,9 +32,9 @@ public class Geolocalizator {
 	private FileDataStore store;
 	private SimpleFeatureSource featureSource;
 	private CachingFeatureSource cachedFeatureSource;
-	private GeometryDescriptor geometryDesc;
+	// private GeometryDescriptor geometryDesc;
 	// private CoordinateReferenceSystem targetCRS;
-	//private String geometryPropertyName;
+	// private String geometryPropertyName;
 		
 	public Geolocalizator(String filePath){
 //		File file = JFileDataStoreChooser.showOpenFile("shp", null);
@@ -57,7 +57,7 @@ public class Geolocalizator {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        this.geometryDesc = featureSource.getSchema().getGeometryDescriptor();
+        // this.geometryDesc = featureSource.getSchema().getGeometryDescriptor();
         // this.targetCRS = geometryDesc.getCoordinateReferenceSystem();
         // this.geometryPropertyName = geometryDesc.getLocalName();        
 	}
@@ -69,9 +69,9 @@ public class Geolocalizator {
 //	        position.getCoordinateReferenceSystem(), this.targetCRS, true);
 //	    DirectPosition dataPosition = transform.transform(position, null);
 //	    return JTS.toGeometry(dataPosition);
-	    GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory( null );
+	    GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(null);
 	    Coordinate coord = new Coordinate(longitude, latitude);
-	    return geometryFactory.createPoint( coord );
+	    return geometryFactory.createPoint(coord);
 	}
 	
 	public ArrayList<String> getStateFromCoordinates(double longitude, double latitude) {
@@ -117,7 +117,6 @@ public class Geolocalizator {
 		Geolocalizator localizator = new Geolocalizator(
 			"src/main/resources/tl_2014_us_state/tl_2014_us_state.shp");
 		System.out.println(localizator.getStateFromCoordinates(-95.7335419655, 38.8612531494)); // Kansas
-		System.out.println(localizator.getStateFromCoordinates(40.712784, -74.005941)); // New York
 		System.out.println(localizator.getStateFromCoordinates(41.902783, 12.496366));  // Rome
     }
 

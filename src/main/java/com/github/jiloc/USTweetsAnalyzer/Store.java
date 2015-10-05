@@ -35,7 +35,7 @@ public class Store {
       
     public Store()  throws IOException{
           //The process of writing indexing
-        dir = new SimpleFSDirectory(new File("~/index"));
+        dir = new SimpleFSDirectory(new File("tweet_index"));
         analyzer = new StandardAnalyzer(LUCENE_41);
         cfg = new IndexWriterConfig(LUCENE_41,analyzer);
         writer = new IndexWriter(dir,cfg);

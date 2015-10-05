@@ -60,20 +60,17 @@ public class Streamer {
                               ArrayList<String> state = geoLocalizator.getStateFromCoordinates(
                                     status.getGeoLocation().getLongitude(),
                                     status.getGeoLocation().getLatitude());
-                                if(state != null && state.get(0) != null && status.getUser().getLocation()!= null){
-				System.out.println(
-						"getUserLocation: " + status.getUser().getLocation() + // LOC
+                              
+                                if(state != null && status.getUser().getLocation()!= null){
+				  System.out.println(
+						" getUserLocation: " + status.getUser().getLocation() + // LOC
 						" getGeoLocation: " + status.getGeoLocation() + 
 						" geoLocalizator: " + geoLocalizator.getStateFromCoordinates(
 							status.getGeoLocation().getLongitude(), 
-							status.getGeoLocation().getLatitude()));
+							status.getGeoLocation().getLatitude())
+                                  );
                                 
-                          
-                                
-                                 
-                             
-                                    
-                                    
+              
                                     try {
                                         store.Writing_Index(state.get(0), status.getUser().getLocation());
                                     } catch (IOException ex) {

@@ -27,6 +27,8 @@ public class Streamer {
 
 	private TwitterStream twitterStream;
 	private Geolocalizator geoLocalizator;
+	private int received_tweets;
+	private int max_tweets_in_memory = 100;
 	// private static String[] query = new String[]{"Alaska"};
 	// private static String[] language = new String[]{"it"};
 	// private static long userId=3007554729l;
@@ -39,6 +41,7 @@ public class Streamer {
 	private Store store;
 
 	public Streamer() throws IOException {
+		this.received_tweets = 0;
 		this.twitterStream = new TwitterStreamFactory().getInstance();
 		this.twitterStream.addListener(listener);
 		this.geoLocalizator = new Geolocalizator("src/main/resources/tl_2014_us_state/tl_2014_us_state.shp");
@@ -60,7 +63,10 @@ public class Streamer {
 
 					try {
 						store.Writing_Index(state.get(0), status.getUser().getLocation());
-						store.commit();
+						received_tweets++;
+						if (received_tweets % max_tweets_in_memory == 0){
+							store.commit();
+						}
 					} catch (IOException ex) {
 						Logger.getLogger(Streamer.class.getName()).log(Level.SEVERE, null, ex);
 					}

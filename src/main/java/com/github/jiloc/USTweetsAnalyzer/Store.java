@@ -55,13 +55,22 @@ public class Store {
 		writer.addDocument(doc);
 	}
 	
-	public void commit() throws IOException{
-		writer.commit();
+	public void commit() {
+		try {
+			writer.commit();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
-	public void close() throws IOException {
-		writer.commit();
-		writer.close();
+	public void close() {
+		try {
+			writer.commit();
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-
 }

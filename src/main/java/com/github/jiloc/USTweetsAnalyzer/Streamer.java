@@ -24,53 +24,52 @@ import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 
 public class Streamer {
-
-	private TwitterStream twitterStream;
-	private Geolocalizator geoLocalizator;
-	private int received_tweets;
-	private int max_tweets_in_memory = 100;
+	private final String GEOLOCALIZATOR_PATH = "src/main/resources/tl_2014_us_state/tl_2014_us_state.shp";
+	private final int MAX_TWEETS_IN_MEMORY = 10;
+	private static double[][] LOCATIONS = new double[][] { 
+		{ -125.32203125, 24.6085180263 }, { -66.806875, 49.0553985878 }, // Central America
+		{ -163.730232375, 17.3129861307 }, { -150.918203125, 24.4630715246 }, // Hawaii
+		{ -179.902107375, 49.5693693495 }, { -119.453359375, 71.5805021834 } // Alaska
+	};	
+	private long receivedTweets = 0;
+	private final TwitterStream twitterStream;
+	private final Geolocalizator geoLocalizator;
+	private final Store storage;
 	// private static String[] query = new String[]{"Alaska"};
 	// private static String[] language = new String[]{"it"};
 	// private static long userId=3007554729l;
-	private static double[][] locations = new double[][] { { -125.32203125, 24.6085180263 },
-			{ -66.806875, 49.0553985878 }, // Central America
-			{ -163.730232375, 17.3129861307 }, { -150.918203125, 24.4630715246 }, // Hawaii
-			{ -179.902107375, 49.5693693495 }, { -119.453359375, 71.5805021834 } // Alaska
-	};
-
-	private Store store;
-
+	
 	public Streamer() throws IOException {
-		this.received_tweets = 0;
 		this.twitterStream = new TwitterStreamFactory().getInstance();
-		this.twitterStream.addListener(listener);
-		this.geoLocalizator = new Geolocalizator("src/main/resources/tl_2014_us_state/tl_2014_us_state.shp");
-		store = new Store();
+		this.geoLocalizator = new Geolocalizator(this.GEOLOCALIZATOR_PATH);
+		this.storage = new Store();
 	}
 
 	private StatusListener listener = new StatusListener() {
+		
 		public void onStatus(Status status) {
-
 			if (status.getGeoLocation() != null) {
-				ArrayList<String> state = geoLocalizator.getStateFromCoordinates(status.getGeoLocation().getLongitude(),
-						status.getGeoLocation().getLatitude());
+				ArrayList<String> state = geoLocalizator.getStateFromCoordinates(
+					status.getGeoLocation().getLongitude(),
+					status.getGeoLocation().getLatitude()
+				);
 
 				if (state != null && status.getUser().getLocation() != null) {
-					System.out.println(" getUserLocation: " + status.getUser().getLocation() + // LOC
-							" getGeoLocation: " + status.getGeoLocation() + " geoLocalizator: "
-							+ geoLocalizator.getStateFromCoordinates(status.getGeoLocation().getLongitude(),
-									status.getGeoLocation().getLatitude()));
-
-					try {
-						store.Writing_Index(state.get(0), status.getUser().getLocation());
-						received_tweets++;
-						if (received_tweets % max_tweets_in_memory == 0){
-							store.commit();
-						}
-					} catch (IOException ex) {
-						Logger.getLogger(Streamer.class.getName()).log(Level.SEVERE, null, ex);
-					}
+					this.saveEntry(state.get(0), status.getUser().getLocation());
 				}
+			}
+		}
+		
+		public void saveEntry(String state, String userLocation){
+			try {
+				storage.Writing_Index(state, userLocation);
+				receivedTweets++;
+				if (receivedTweets % MAX_TWEETS_IN_MEMORY == 0){
+					System.out.println(receivedTweets + " tweets received");
+					storage.commit();
+				}
+			} catch (IOException ex) {
+				Logger.getLogger(Streamer.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
 
@@ -78,10 +77,13 @@ public class Streamer {
 		}
 
 		public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
+			System.out.println("Maximum number of statuses reached.");
+			stopListening();
 		}
 
 		public void onException(Exception ex) {
 			ex.printStackTrace();
+			stopListening();
 		}
 
 		public void onScrubGeo(long arg0, long arg1) {
@@ -97,22 +99,26 @@ public class Streamer {
 		// sample() method internally creates a thread which manipulates
 		// TwitterStream
 		// and calls these adequate listener methods continuously.
-		this.twitterStream.sample(); // 1 % of the public stream
+		this.twitterStream.addListener(listener);
+		System.out.println("Opening stream. Start listening..");
+		//this.twitterStream.sample(); // 1 % of the public stream
 
 		FilterQuery fq = new FilterQuery();// the filter object
-		fq.locations(locations);
+		fq.locations(LOCATIONS);
 		// fq.language(language);
 		// fq.track(query); //the query to track from the stream
 		this.twitterStream.filter(fq);
-
 	}
-
-	public Store getStore() {
-		return store;
+	
+	public void stopListening() {
+		System.out.println("Closing stream.");
+        this.twitterStream.clearListeners();
+        this.twitterStream.cleanUp();
+        System.out.println("Closing storage.");
+        this.storage.close();
 	}
 
 	public static void main(String[] args) throws TwitterException, IOException {
-
 		Streamer stream = new Streamer();
 		stream.startListening();
 	}

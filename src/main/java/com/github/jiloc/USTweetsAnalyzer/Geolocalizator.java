@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.geotools.data.CachingFeatureSource;
+//import org.geotools.data.CachingFeatureSource;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -15,7 +15,6 @@ import org.geotools.filter.text.cql2.CQLException;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.filter.Filter;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -27,20 +26,16 @@ import com.vividsolutions.jts.geom.Point;
  * <p>
  * This is the GeoTools Quickstart application used in documentationa and tutorials. *
  */
-@SuppressWarnings("deprecation")
 public class Geolocalizator {
 	private FileDataStore store;
 	private SimpleFeatureSource featureSource;
-	private CachingFeatureSource cachedFeatureSource;
+	// private CachingFeatureSource cachedFeatureSource;
 	// private GeometryDescriptor geometryDesc;
 	// private CoordinateReferenceSystem targetCRS;
 	// private String geometryPropertyName;
 		
 	public Geolocalizator(String filePath){
-//		File file = JFileDataStoreChooser.showOpenFile("shp", null);
-//        if (file == null) {
-//            return;
-//        }
+
         File file = new File(filePath);
         try {
 			this.store = FileDataStoreFinder.getDataStore(file);
@@ -51,24 +46,19 @@ public class Geolocalizator {
 		}
      
         //CachingFeatureSource is deprecated as experimental (not yet production ready)
-		try {
-			this.cachedFeatureSource = new CachingFeatureSource(store.getFeatureSource());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// try {
+		// 	this.cachedFeatureSource = new CachingFeatureSource(store.getFeatureSource());
+		// } catch (IOException e) {
+		// 	// TODO Auto-generated catch block
+		// 	e.printStackTrace();
+		// }
+		// this.cachedFeatureSource.
         // this.geometryDesc = featureSource.getSchema().getGeometryDescriptor();
         // this.targetCRS = geometryDesc.getCoordinateReferenceSystem();
         // this.geometryPropertyName = geometryDesc.getLocalName();        
 	}
 	
 	public Point getPointFromCoordinates(double longitude, double latitude) {
-//		DirectPosition2D position = new DirectPosition2D(
-//			this.targetCRS , longitude, latitude);
-//	    MathTransform transform = CRS.findMathTransform(
-//	        position.getCoordinateReferenceSystem(), this.targetCRS, true);
-//	    DirectPosition dataPosition = transform.transform(position, null);
-//	    return JTS.toGeometry(dataPosition);
 	    GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(null);
 	    Coordinate coord = new Coordinate(longitude, latitude);
 	    return geometryFactory.createPoint(coord);
@@ -104,7 +94,6 @@ public class Geolocalizator {
             while (iterator.hasNext()) {
                 SimpleFeature feature = iterator.next();
                 states.add((String) feature.getAttribute("NAME"));
-                // Geometry state = (Geometry) feature.getDefaultGeometry();
             }
         } finally {
             iterator.close();

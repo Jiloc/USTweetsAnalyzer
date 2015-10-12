@@ -34,6 +34,8 @@ public class Store {
 	private final TextField l;
 
 	public Store() throws IOException {
+                //first we empty our directory 
+                resetDir(new File("tweet_idex"));
 		// The process of writing indexing
 		dir = new SimpleFSDirectory(new File("tweet_index"));
 		analyzer = new StandardAnalyzer(LUCENE_41);
@@ -73,4 +75,50 @@ public class Store {
 			e.printStackTrace();
 		}
 	}
+
+    /**
+     * Delete a file o a directory
+     * @param file 
+     * @throws IOException 
+     */
+         public  void resetDir(File file)throws IOException{
+             if(file.exists()){
+                 if(file.isDirectory()){
+ 
+                    //directory is empty, then delete it
+                    if(file.list().length==0){
+    			
+                        file.delete();
+                        // System.out.println("Directory is deleted : "  + file.getAbsolutePath());
+    			
+                    }else{
+    			
+                        //list all the directory contents
+                         String files[] = file.list();
+     
+                        for (String temp : files) {
+                             //construct the file structure
+                             File fileDelete = new File(file, temp);
+        		 
+                              //recursive delete
+                              resetDir(fileDelete);
+                        }
+        		
+                        //check the directory again, if empty then delete it
+                        if(file.list().length==0){
+                             file.delete();
+                             // System.out.println("Directory is deleted : "  + file.getAbsolutePath());
+                        }
+                    }
+    		
+            }else{
+    		//if file, then delete it
+    		file.delete();
+    		//System.out.println("File is deleted : " + file.getAbsolutePath());
+            }
+        }
+    
+    }
+        
+        
 }

@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.store.Directory;
 
 import twitter4j.FilterQuery;
 import twitter4j.StallWarning;
@@ -35,14 +36,20 @@ public class Streamer {
 	private final TwitterStream twitterStream;
 	private final Geolocalizator geoLocalizator;
 	private final Store storage;
+        private  Directory dir;
 	// private static String[] query = new String[]{"Alaska"};
 	// private static String[] language = new String[]{"it"};
 	// private static long userId=3007554729l;
+
+    public Directory getDir() {
+        return dir;
+    }
 	
 	public Streamer() throws IOException {
 		this.twitterStream = new TwitterStreamFactory().getInstance();
 		this.geoLocalizator = new Geolocalizator(this.GEOLOCALIZATOR_PATH);
 		this.storage = new Store();
+                Directory dir = storage.getDir();
 	}
 
 	private StatusListener listener = new StatusListener() {

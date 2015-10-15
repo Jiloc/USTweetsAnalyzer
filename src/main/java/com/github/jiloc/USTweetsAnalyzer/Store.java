@@ -7,6 +7,7 @@ package com.github.jiloc.USTweetsAnalyzer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 //import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -31,9 +32,18 @@ public class Store {
 	private final IndexWriter writer;
 	private final Document doc;
 	private final StringField s;
-	private final TextField l;
 
+    public Directory getDir() {
+        return dir;
+    }
+	private final TextField l;
+        public static  HashSet<String> states;
+
+        public HashSet<String> getStates() {
+            return states;
+        }
 	public Store() throws IOException {
+                states = new HashSet<String>();
                 //first we empty our directory 
                 resetDir(new File("tweet_idex"));
 		// The process of writing indexing
@@ -52,6 +62,7 @@ public class Store {
 	}
 
 	public void Writing_Index(String state, String loc) throws IOException {
+                states.add(state);
 		s.setStringValue(state);
 		l.setStringValue(loc);
 		writer.addDocument(doc);

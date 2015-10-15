@@ -19,7 +19,7 @@ public class TopFeatures {
     HashMap<String, HashSet<String>> mscOfStates;
     HashMap<String, HashSet<String>> topFeatures;
     HashSet<String> states = new  HashSet<String>();
-
+    
     public TopFeatures(Directory dir) throws IOException {
         analyzer = new Analyzer_Index(dir) ;
         mscOfStates = new HashMap<String, HashSet<String>>();

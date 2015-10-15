@@ -123,6 +123,14 @@ public class Streamer {
         this.twitterStream.cleanUp();
         System.out.println("Closing storage.");
         this.storage.close();
+          /*  TopFeatures topf=null;
+            try {
+                topf = new TopFeatures(dir);
+            } catch (IOException ex) {
+                Logger.getLogger(Streamer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+                 topf.printTopFeatures();
+                  */
 	}
 
 	public static void main(String[] args) throws TwitterException, IOException {

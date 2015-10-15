@@ -1,15 +1,19 @@
 package com.github.jiloc.USTweetsAnalyzer;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.SimpleFSDirectory;
 
 public class Main {
-    static Directory dir;
+
 	class ShutDownHandler extends Thread {
 
 		Thread th;
 		Streamer stream;
-                
+
 		public ShutDownHandler(Thread t, Streamer stream) {
 			this.th = t;
 			this.stream = stream;
@@ -29,6 +33,20 @@ public class Main {
 			}
 			// close db and stream
 			this.stream.stopListening();
+                        System.out.println("begin loading index");
+             
+                    Directory dir = null;
+                        try {
+                            dir = SimpleFSDirectory.open(new File("tweet_index"));
+                    } catch (IOException ex) {
+                        Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    try {
+                        TopFeatures topf = new TopFeatures(dir);
+                        topf.printTopFeatures();
+                    } catch (IOException ex) {
+                        Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 			System.out.println("Cleaned up. Quitting...");
 		}
 	}
@@ -37,7 +55,6 @@ public class Main {
 		Streamer stream = null;
 		try {
 			stream = new Streamer();
-                        dir = stream.getDir();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -50,7 +67,6 @@ public class Main {
 	public static void main(String[] args) throws InterruptedException, IOException {
 		new Main().doProcessing();
                 
-                 TopFeatures topf = new TopFeatures(dir);
-                 topf.printTopFeatures();
+                 
 	}
 }

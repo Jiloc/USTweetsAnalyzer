@@ -6,12 +6,10 @@
 package com.github.jiloc.USTweetsAnalyzer;
 
 
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
@@ -38,34 +36,35 @@ import org.apache.lucene.util.Version;
  */
 public class Analyzer_Index {
     
-    IndexReader ir;
-    IndexSearcher searcher;
-    Term state_term;
-    Query q_term;
-    BooleanQuery boolq;
-    TopDocs top;
-    ScoreDoc[] hits;
-    Document document;
-    String state_field="STATE";
-    QueryParser parser;
-    String queryString="LOC:Usa";
-    private final int MAX_RETRIEVED;
-    private ArrayList<HashSet<String>> Ordered_STATE_LOCS;
-    private Query query;
+    private IndexReader ir;
+    private IndexSearcher searcher;
+    private Term state_term;
+    private Query q_term;
+    private BooleanQuery boolq;
+    private TopDocs top;
+    private ScoreDoc[] hits;
+    private Document document;
+    private String state_field="STATE";
+    private QueryParser parser;
+    private String queryString="LOC:Usa";
+    private int MAX_RETRIEVED=3;
     private int max;
     private Document doc;
+    private Query query;
+   // public static Map<String,HashSet<String>> universe;
     private String state_value;
+    public static ArrayList<HashSet<String>> Ordered_STATE_LOCS;
+    private HashSet<HashSet<String>> minSetC;
     
-    public Analyzer_Index(Directory dir,int n) throws IOException {
-        this.MAX_RETRIEVED = n;
+    public Analyzer_Index(Directory dir) throws IOException {
         ir = DirectoryReader.open(dir);
         searcher =  new IndexSearcher(ir);
-      
+       // universe =  new HashMap<String, HashSet<String>>();
+       
         
     }
     /**
      * search for all documents that has state 
-     * Use BooleanQuery 
      * @param state
      * @throws IOException 
      */
@@ -75,23 +74,13 @@ public class Analyzer_Index {
             boolq = new BooleanQuery();
             boolq.add(q_term, BooleanClause.Occur.MUST);
             
-            top = searcher.search(boolq,3);
+            top = searcher.search(boolq,MAX_RETRIEVED);
             hits = top.scoreDocs;
-              int i = 0;
-              
-        for(ScoreDoc entry:hits){
-              i++;
-              System.out.println("\nDocument Details "+i);
-              document = searcher.doc(entry.doc);
-            /*   System.out.println("Field"+i+": "+document.get("LOC"))*/
-            List<IndexableField> fields = document.getFields();
-            for(IndexableField fld:fields){  
-                System.out.println(fld.name()+": "+fld.stringValue());
-                
-            }
-            
-        }
-        
+          
+            Ordered_STATE_LOCS = new ArrayList<HashSet<String>>();
+            minSetC=new HashSet<HashSet<String>>();
+            buildingMinSetCovG(buildStateUniverse());
+            printMSC();
     }
     
     /**
@@ -101,67 +90,13 @@ public class Analyzer_Index {
     public void close() throws IOException{
         ir.close();
     }
-    /**
-     * Use QueryParser, search for all documents that match a queryString in the field LOC only.
-     * Since it is the only field that can be tokenized and QueryParser works only with tokenized fields 
-     * and in the end tokenize the field LOC of each document matched.     
-     * @throws IOException
-     * @throws ParseException 
-     */
-   /* public void loadTokens() throws IOException, ParseException{
-      
-        parser = new QueryParser(Version.LUCENE_41,"STATE",new StandardAnalyzer(Version.LUCENE_41));
-        Query query = parser.parse(queryString);
-        top = searcher.search(query, MAX_RETRIEVED);
-        hits = top.scoreDocs;
-        System.out.println("hits lenght: "+hits.length+"\n--------------------------------");
-        int i = 0;
-        int max=0;
-        Document doc = null;
-        for(ScoreDoc entry:hits){
-              i++;
-              System.out.println("Hit "+i+"\n---");
-              document = searcher.doc(entry.doc);
-              IndexableField f =  document.getField("LOC");
-              String text = f.stringValue();
-              System.out.println("Only The content of LOC is printed\n--- ");
-              System.out.print("The whole content of LOC: "+"\""+ text+"\""+"\n---\n");
-              //This part of code for tokenize the LOC string of the current document 
-              StringReader reader = new StringReader(text);
-              StandardTokenizer tokenizer = new StandardTokenizer(Version.LUCENE_41, reader);      
-              CharTermAttribute charTermAttrib = tokenizer.getAttribute(CharTermAttribute.class);
-              List<String> tokens = new ArrayList<String>();
-              tokenizer.reset();
-             while (tokenizer.incrementToken()) {
-                tokens.add(charTermAttrib.toString());
-                System.out.println(charTermAttrib.toString());
-            }
-            tokenizer.end();
-            tokenizer.close(); 
-            //toknization phase end here 
-            System.out.println("---\nNumber of tokens: "+tokens.size()+"\n-----------------------------");
-            //save the document with the maximum tokens size 
-            if(tokens.size() > max){
-                doc = document;
-            }
-        }
-        System.out.println("The Document with the maximum LOC size ");
-        System.out.println("STATE:"+ doc.getField(state_field).stringValue() +"\n"+"LOC:"+doc.getField("LOC").stringValue() );
-        
+    
 
-    }*/
-    //the modified loadToken() and others news methods
-    public void loadTokens() throws IOException, ParseException{
-         Ordered_STATE_LOCS = new ArrayList<HashSet<String>>();
-        parser = new QueryParser(Version.LUCENE_41,"STATE",new StandardAnalyzer(Version.LUCENE_41));
-        query = parser.parse(queryString);
-        top = searcher.search(query, MAX_RETRIEVED);
-        hits = top.scoreDocs;
-        System.out.println("hits lenght: "+hits.length+"\n--------------------------------");
-        
+    public  HashSet<String> buildStateUniverse() throws IOException{
         int i = 0;
         max=0;
         doc = null;
+        HashSet<String> universe_state = new HashSet<String>();
         
         for(ScoreDoc entry:hits){
               i++;
@@ -176,22 +111,48 @@ public class Analyzer_Index {
              
               IndexableField f =  document.getField("LOC");
               String text = f.stringValue();
-              System.out.println("Only The content of LOC is printed\n--- ");
+             // System.out.println("Only The content of LOC is printed\n--- ");
               System.out.print("The whole content of LOC: "+"\""+ text+"\""+"\n---\n");
-              //This part of code for tokenize the LOC string of the current document 
-              tokenize(text);
+              //This part of code for tokenize the LOC string of the current document
+              HashSet tokens = tokenize(text);
+              //building the universe of all features related to the corrent object
+              universe_state.addAll(tokens);
+             
+              
         }
-        System.out.println("The Document with the maximum LOC size ");
+       // System.out.println("The Document with the maximum LOC size ");
         
-        if(doc != null){
-            System.out.println("STATE:"+ doc.getField(state_field).stringValue() +"\n"+"LOC:"+doc.getField("LOC").stringValue() );
-        }
+       // if(doc != null){
+         //   System.out.println("STATE:"+ doc.getField(state_field).stringValue() +"\n"+"LOC:"+doc.getField("LOC").stringValue() );
+        //}
         
-         System.out.println("ordered list: "+Ordered_STATE_LOCS.toString());
-
+         
+         return universe_state;
     }
+    public void buildingMinSetCovG(HashSet<String> universe ) throws IOException{
+  
+        max=0;
+        doc = null;
+        HashSet<String> coveredFeatures = new HashSet<String>();
     
-    public  void tokenize(String text) throws IOException{
+        for(ScoreDoc entry:hits){
+            document = searcher.doc(entry.doc);
+            IndexableField f =  document.getField("LOC");
+            String text = f.stringValue();
+            HashSet tokens = tokenize(text);
+            
+            if(coveredFeatures.containsAll(universe)){
+                break;
+            }
+            if(coveredFeatures.isEmpty() || !coveredFeatures.containsAll(tokens)){
+                 coveredFeatures.addAll(tokens);
+            }
+            
+            minSetC.add(tokens);
+            
+        }
+    }
+    public  HashSet tokenize(String text) throws IOException{
               StringReader reader = new StringReader(text);
               StandardTokenizer tokenizer = new StandardTokenizer(Version.LUCENE_41, reader);      
               CharTermAttribute charTermAttrib = tokenizer.getAttribute(CharTermAttribute.class);
@@ -211,19 +172,36 @@ public class Analyzer_Index {
                 max=tokens.size();
                 doc = document;
             }
-            sortLocs(tokens);
+           // sortLocs(tokens);
+            return tokens;
             
            
     }
+    public void printMSC(){
+       System.out.println("Minimum set cover : "+minSetC.toString());
+    }
     
+    /* public void loadTokens() throws IOException, ParseException{
+        Ordered_STATE_LOCS = new ArrayList<HashSet<String>>();
+        parser = new QueryParser(Version.LUCENE_41,"STATE",new StandardAnalyzer(Version.LUCENE_41));
+        query = parser.parse(queryString);
+        top = searcher.search(query, MAX_RETRIEVED);
+        hits = top.scoreDocs;
+        minSetC=new HashSet<HashSet<String>>();
+        System.out.println("hits lenght: "+hits.length+"\n--------------------------------");
+  
+        buildingMinSetCovG(buildStateUniverse());
+        printMSC();
+    }*/
+    /*
     public void sortLocs(HashSet<String> tokens){
                    
                    int pos = ricercaBinaria(tokens.size());
                    Ordered_STATE_LOCS.add(pos, tokens);
                    
        
-    }
-    
+    }*/
+    /*
     public int ricercaBinaria(int size) {
         
         if(Ordered_STATE_LOCS.size() == 0){
@@ -267,9 +245,7 @@ public class Analyzer_Index {
         
        
         
-    }
+    }*/
    
-    
-    
-    
+   
 }
